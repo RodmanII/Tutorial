@@ -44,7 +44,10 @@ namespace Tutorial
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
+            app.UseMvc(routes => 
+            {
+                routes.MapRoute("default", "", defaults: new { controller = "Home", action = "Index" });
+            });
         }
     }
 }

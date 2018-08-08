@@ -10,7 +10,7 @@ namespace Tutorial.Models
         public long Id { get; set; }
         public string Firstname { get; set; }
         public string Lastname { get; set; }
-        public DateTime DoB { get; set; }
+        public string DoB { get; set; }
         public int Age { get; set; }
         public int Weight { get; set; }
         public int Enabled { get; set; }
