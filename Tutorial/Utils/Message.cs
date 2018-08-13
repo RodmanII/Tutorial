@@ -18,5 +18,10 @@ namespace Tutorial.Utils
             Id = "0";
             Description = (type == 1) ? "No fue posible efectuar la operación" : "No fue posible recuperar la información";
         }
+
+        public Message()
+        {
+
+        }
     }
 }

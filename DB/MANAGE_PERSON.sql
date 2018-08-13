@@ -18,7 +18,7 @@ BEGIN
 		UPDATE dbo.PERSON SET FIRSTNAME = @FIRSTNAME, LASTNAME = @LASTNAME, DOB = @DOB, WEIGHT = @WEIGHT WHERE ID = @ID
 
 	IF @@ROWCOUNT > 0
-		SELECT 200 AS CODE, 1 AS ID, 'Operación efectuada con éxito' AS MESSAGE
+		SELECT 200 AS Code, '1' AS Id, 'Operación efectuada con éxito' AS Description
 	ELSE
-		SELECT 500 AS CODE, 0 AS ID, 'No fue posible efectuar la operación' AS MESSAGE
+		SELECT 500 AS Code, '0' AS Id, 'No fue posible efectuar la operación' AS Description
 END

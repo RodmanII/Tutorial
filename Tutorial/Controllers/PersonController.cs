@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 using Tutorial.Models;
 using Tutorial.Utils;
 using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,13 +17,15 @@ namespace Tutorial.Controllers
     public class PersonController : Controller
     {
         private readonly DataContext context;
-        Message mess = new Message();
+        private readonly IConfiguration configuration;
+        Message mess = new Message(1);
         string[] paramNames;
         string procedure = "", badId = "El Id enviado no corresponde a ninguna persona";
 
-        public PersonController(DataContext ctx)
+        public PersonController(DataContext ctx, IConfiguration conf)
         {
             context = ctx;
+            configuration = conf;
         }
 
         [HttpPost("manager")]
@@ -35,18 +37,19 @@ namespace Tutorial.Controllers
                 procedure = String.Format("dbo.MANAGE_PERSON @{0}, @{1}, @{2}, @{3}, @{4}", paramNames);
                 SqlParameter[] sqlparams = new SqlParameter[]
                 {
-                    new SqlParameter() { ParameterName = paramNames[0], Value = person.Id, Direction = ParameterDirection.Input },
-                    new SqlParameter() { ParameterName = paramNames[1], Value = person.Firstname, Direction = ParameterDirection.Input },
-                    new SqlParameter() { ParameterName = paramNames[2], Value = person.Lastname, Direction = ParameterDirection.Input },
-                    new SqlParameter() { ParameterName = paramNames[3], Value = person.DoB, Direction = ParameterDirection.Input },
-                    new SqlParameter() { ParameterName = paramNames[4], Value = person.Weight, Direction = ParameterDirection.Input }
+                    new SqlParameter() { ParameterName = paramNames[0], Value = person.Id, SqlDbType = SqlDbType.Int },
+                    new SqlParameter() { ParameterName = paramNames[1], Value = person.Firstname, SqlDbType = SqlDbType.VarChar },
+                    new SqlParameter() { ParameterName = paramNames[2], Value = person.Lastname, SqlDbType = SqlDbType.VarChar },
+                    new SqlParameter() { ParameterName = paramNames[3], Value = person.DoB, SqlDbType = SqlDbType.Date },
+                    new SqlParameter() { ParameterName = paramNames[4], Value = person.Weight, SqlDbType = SqlDbType.SmallInt }
                 };
-                
+
                 mess = context.Set<Message>().FromSql(procedure, sqlparams).SingleOrDefault();
 
-            }catch(Exception err)
+            }
+            catch (Exception err)
             {
-                mess.Description = err.Message;
+                mess.Description = configuration["Messages:ErrGeneric"] + err.Message;
             }
             return mess;
         }
@@ -61,7 +64,7 @@ namespace Tutorial.Controllers
         {
             try
             {
-                if(Id <= 0)
+                if (Id <= 0)
                 {
                     throw new ApplicationException(badId);
                 }
@@ -70,11 +73,11 @@ namespace Tutorial.Controllers
                 procedure = String.Format("SP_MANAGE_ENTITY_STATE @{0}, @{1}, @{2}", paramNames);
                 SqlParameter[] sqlparams = new SqlParameter[]
                 {
-                    new SqlParameter() { ParameterName = paramNames[0], Value = Id, Direction = ParameterDirection.Input },
+                    new SqlParameter() { ParameterName = paramNames[0], Value = Id, SqlDbType = SqlDbType.Int },
                     //El 1 es el tipo que corresponde a persona
-                    new SqlParameter() { ParameterName = paramNames[1], Value = 1, Direction = ParameterDirection.Input },
+                    new SqlParameter() { ParameterName = paramNames[1], Value = 1, SqlDbType = SqlDbType.Int },
                     //El 1 corresponde a cambiar estado, el 2 a eliminar
-                    new SqlParameter() { ParameterName = paramNames[2], Value = Op, Direction = ParameterDirection.Input }
+                    new SqlParameter() { ParameterName = paramNames[2], Value = Op, SqlDbType = SqlDbType.Int }
                 };
                 mess = context.Set<Message>().FromSql(procedure, sqlparams).SingleOrDefault();
             }
@@ -97,9 +100,9 @@ namespace Tutorial.Controllers
                 procedure = String.Format("SP_LIST_PERSON @{0}, @{1}, @{2}", paramNames);
                 SqlParameter[] sqlparams = new SqlParameter[]
                 {
-                    new SqlParameter() { ParameterName = paramNames[0], Value = Id, Direction = ParameterDirection.Input },
-                    new SqlParameter() { ParameterName = paramNames[1], Value = Start, Direction = ParameterDirection.Input },
-                    new SqlParameter() { ParameterName = paramNames[2], Value = End, Direction = ParameterDirection.Input }
+                    new SqlParameter() { ParameterName = paramNames[0], Value = Id, SqlDbType = SqlDbType.Int },
+                    new SqlParameter() { ParameterName = paramNames[1], Value = Start, SqlDbType = SqlDbType.Int },
+                    new SqlParameter() { ParameterName = paramNames[2], Value = End, SqlDbType = SqlDbType.Int }
                 };
                 list = context.Set<Person>().FromSql(procedure, sqlparams).ToList();
             }
