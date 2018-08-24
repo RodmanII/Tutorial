@@ -8,6 +8,7 @@ using Tutorial.Utils;
 using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using System.Data.Common;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -55,29 +56,22 @@ namespace Tutorial.Controllers
         }
 
         [HttpPut("state")]
-        public Message State([FromBody] int Id)
+        public Message State([FromBody] IdReceiver receiver)
         {
-            return UpdateState(Id);
+            return UpdateState(receiver.Id);
         }
 
         public Message UpdateState(int Id, int Op = 1)
         {
             try
             {
-                if (Id <= 0)
-                {
-                    throw new ApplicationException(badId);
-                }
-
-                paramNames = new string[] { "ID", "TARGET", "OP" };
-                procedure = String.Format("SP_MANAGE_ENTITY_STATE @{0}, @{1}, @{2}", paramNames);
+                paramNames = new string[] { "PERSON_ID", "OP_TYPE" };
+                procedure = String.Format("dbo.SET_PERSON_STATE @{0}, @{1}", paramNames);
                 SqlParameter[] sqlparams = new SqlParameter[]
                 {
                     new SqlParameter() { ParameterName = paramNames[0], Value = Id, SqlDbType = SqlDbType.Int },
                     //El 1 es el tipo que corresponde a persona
-                    new SqlParameter() { ParameterName = paramNames[1], Value = 1, SqlDbType = SqlDbType.Int },
-                    //El 1 corresponde a cambiar estado, el 2 a eliminar
-                    new SqlParameter() { ParameterName = paramNames[2], Value = Op, SqlDbType = SqlDbType.Int }
+                    new SqlParameter() { ParameterName = paramNames[1], Value = Op, SqlDbType = SqlDbType.Int }
                 };
                 mess = context.Set<Message>().FromSql(procedure, sqlparams).SingleOrDefault();
             }
@@ -96,15 +90,43 @@ namespace Tutorial.Controllers
             Tuple<Message, List<Person>> result;
             try
             {
-                paramNames = new string[] { "ID", "START", "END" };
-                procedure = String.Format("SP_LIST_PERSON @{0}, @{1}, @{2}", paramNames);
-                SqlParameter[] sqlparams = new SqlParameter[]
+                paramNames = new string[] { "@PERSON_ID", "@START", "@END" };
+                procedure = "dbo.LIST_PERSON";
+                using (DbConnection conn = context.Database.GetDbConnection())
                 {
-                    new SqlParameter() { ParameterName = paramNames[0], Value = Id, SqlDbType = SqlDbType.Int },
-                    new SqlParameter() { ParameterName = paramNames[1], Value = Start, SqlDbType = SqlDbType.Int },
-                    new SqlParameter() { ParameterName = paramNames[2], Value = End, SqlDbType = SqlDbType.Int }
-                };
-                list = context.Set<Person>().FromSql(procedure, sqlparams).ToList();
+                    DbCommand command = conn.CreateCommand();
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = procedure;
+
+                    DbParameter pId = command.CreateParameter();
+                    pId.ParameterName = paramNames[0];
+                    pId.DbType = DbType.Int32;
+                    pId.Value = Id;
+                    command.Parameters.Add(pId);
+
+                    DbParameter pStart = command.CreateParameter();
+                    pStart.ParameterName = paramNames[1];
+                    pStart.DbType = DbType.Int32;
+                    pStart.Value = Start;
+                    command.Parameters.Add(pStart);
+
+                    DbParameter pEnd = command.CreateParameter();
+                    pEnd.ParameterName = paramNames[2];
+                    pEnd.DbType = DbType.Int32;
+                    pEnd.Value = End;
+                    command.Parameters.Add(pEnd);
+
+                    //Listado de parametros
+                    conn.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        list = context.Person.Translate(reader);
+                        reader.NextResult();
+                        mess = context.Message.Translate(reader)[0];
+                    }
+                }
+                //list = context.Set<Person>().FromSql(procedure, sqlparams).ToList();
             }
             catch (Exception err)
             {
@@ -117,9 +139,9 @@ namespace Tutorial.Controllers
 
         // DELETE api/<controller>/5
         [HttpDelete("{Id}")]
-        public Message Delete(int Id)
+        public Message Delete(IdReceiver receiver)
         {
-            return UpdateState(Id, 2);
+            return UpdateState(receiver.Id, 2);
         }
     }
 }
