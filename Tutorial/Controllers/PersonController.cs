@@ -121,9 +121,33 @@ namespace Tutorial.Controllers
 
                     using (var reader = command.ExecuteReader())
                     {
-                        list = context.Person.Translate(reader);
-                        reader.NextResult();
-                        mess = context.Message.Translate(reader)[0];
+                        while(reader.Read())
+                        {
+                            Person per = new Person()
+                            {
+                                Id = Int32.Parse(reader["Id"].ToString()),
+                                Firstname = reader["Firstname"].ToString(),
+                                Lastname = reader["Lastname"].ToString(),
+                                DoB = reader["DoB"].ToString(),
+                                Weight = Int16.Parse(reader["Weight"].ToString()),
+                                Age = Int32.Parse(reader["Age"].ToString()),
+                                Enabled = Byte.Parse(reader["Enabled"].ToString())
+                            };
+                            list.Add(per);
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            if (reader.Read())
+                            {
+                                mess = new Message()
+                                {
+                                    Code = Int32.Parse(reader["Code"].ToString()),
+                                    Id = reader["Id"].ToString(),
+                                    Description = reader["Description"].ToString()
+                                };
+                            }
+                        }
                     }
                 }
                 //list = context.Set<Person>().FromSql(procedure, sqlparams).ToList();

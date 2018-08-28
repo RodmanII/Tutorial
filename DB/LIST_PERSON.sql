@@ -22,8 +22,8 @@ BEGIN
 	EXEC sp_executesql @QUERY, N'@PERSON_ID INT, @START INT, @END INT', @PERSON_ID, @START, @END;
 
 	IF @@ROWCOUNT > 0
-		SELECT 200 AS Code, '1' AS Id, 'Operación efectuada con éxito'
+		SELECT 200 AS Code, '1' AS Id, 'Operación efectuada con éxito' AS [Description]
 	ELSE
-		SELECT 500 AS Code, '0' AS Id, 'No se encontraron registros'
+		SELECT 500 AS Code, '0' AS Id, 'No se encontraron registros' AS [Description]
 
 END
