@@ -12,6 +12,9 @@ using Newtonsoft.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Tutorial.Models;
 using Tutorial.Utils;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Tutorial
 {
@@ -37,6 +40,27 @@ namespace Tutorial
             services.AddDbContext<DataContext>(options => options.UseSqlServer(conn));
             services.AddMvc().AddJsonOptions(options => options.SerializerSettings.ContractResolver = new  DefaultContractResolver())
                 .AddMvcOptions(options => options.Filters.Add(typeof(ActionFilter)));
+
+            //Se autentica el token en cada solicitud
+            string strKey = Configuration["Security:Secret"].ToString();
+            var key = Encoding.ASCII.GetBytes(strKey);
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {                
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +70,9 @@ namespace Tutorial
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            //Para que incorpore la autenticacion por token 
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {

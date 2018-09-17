@@ -9,20 +9,16 @@ using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Common;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Tutorial.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
-    public class PersonController : Controller
-    {
-        private readonly DataContext context;
-        private readonly IConfiguration configuration;
-        Message mess = new Message(1);
-        string[] paramNames;
-        string procedure = "", badId = "El Id enviado no corresponde a ninguna persona";
-
+    public class PersonController : MyBaseClass
+    {       
         public PersonController(DataContext ctx, IConfiguration conf)
         {
             context = ctx;
