@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Common;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
+using System.Threading;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -57,7 +59,10 @@ namespace Tutorial.Controllers
             return UpdateState(receiver.Id);
         }
 
-        public Message UpdateState(int Id, int Op = 1)
+        /*Swagger estaba fallando porque el controlador tenia definida esta funcion que no tenia anotado
+         * el metodo http y era publica, la cambia a protegida y funciono
+        */
+        protected Message UpdateState(int Id, int Op = 1)
         {
             try
             {
