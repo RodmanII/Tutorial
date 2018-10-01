@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Tutorial.Models;
@@ -15,12 +10,11 @@ using Tutorial.Utils;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
-using Swashbuckle.AspNetCore;
 using Swashbuckle.AspNetCore.Swagger;
+using System.Reflection;
+using System.IO;
 
 namespace Tutorial
 {
@@ -93,6 +87,15 @@ namespace Tutorial
                     Description = "Api de practica creada para aprender NET CORE",
                     Contact = new Contact() { Email = "grijalva.rodrigo@treming.com", Url = "www.treming.com" }
                 });
+
+                /*Esto es para que a las peticiones les incorpore un campo para enviar la cabecera
+                Authorization */
+                c.OperationFilter<HeaderFilter>();
+
+                //Se establece la ruta del archivo de comentarios para swagger
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
@@ -105,7 +108,9 @@ namespace Tutorial
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/tutorial/swagger.json", "API de Practica");                
+                c.SwaggerEndpoint("/swagger/tutorial/swagger.json", "API de Practica");
+                //Esto para que en la ruta base de la api muestre a swagger
+                c.RoutePrefix = "";
             });
 
             var supportedCultures = new[] { DefaultCulture };
@@ -126,10 +131,10 @@ namespace Tutorial
 
             /*Esto lo hacia para mostrar el contenido de un archivo, estatico, pero ahora en la ruta base va a estar swagger
             asi que ya no es necesario*/
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute("default", "", defaults: new { controller = "Home", action = "Index" });
-            //});
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("default", "", defaults: new { controller = "swagger" });
+            });
         }
     }
 }

@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Tutorial.Models;
 using Tutorial.Utils;
-using System.Data.Common;
 using System.Data.SqlClient;
 
 namespace Tutorial.Controllers
@@ -27,6 +22,17 @@ namespace Tutorial.Controllers
             configuration = config;
         }
 
+        /// <summary>
+        /// Inicio de sesion
+        /// </summary>
+        /// <remarks>
+        /// Este metodo retorna en el Id de la respuesta un token que ha de ser enviado en la cabecera
+        /// Authorization de aquellos metodos que requieran autenticacion, con el formato
+        /// Bearer TOKEN_RETORNADO
+        /// </remarks>
+        /// <param name="auth">Instancia de UserAuth</param>
+        /// <returns>Instancia de Message</returns>
+        [Produces("application/json")]
         [HttpPost("authenticate")]
         public Message Authenticate([FromBody] UserAuth auth)
         {

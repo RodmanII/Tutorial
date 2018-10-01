@@ -17,6 +17,9 @@ using System.Threading;
 
 namespace Tutorial.Controllers
 {
+    /// <summary>
+    /// Metodos para la gestion de personas
+    /// </summary>
     [Authorize]
     [Route("api/[controller]")]
     public class PersonController : MyBaseClass
@@ -27,6 +30,15 @@ namespace Tutorial.Controllers
             configuration = conf;
         }
 
+        /// <summary>
+        /// Crea o actualiza un registro de persona
+        /// </summary>
+        /// <remarks>
+        /// Dependiendo del valor de Id: 0 para crear, un id especifico para actualizar
+        /// </remarks>
+        /// <param name="person">Instancia de Person</param>
+        /// <returns>Instancia de Message</returns>
+        [Produces("application/json")]
         [HttpPost("manager")]
         public Message Save([FromBody][Bind("Id,Firstname,Lastname,DoB,Weight")] Person person)
         {
@@ -44,7 +56,6 @@ namespace Tutorial.Controllers
                 };
 
                 mess = context.Set<Message>().FromSql(procedure, sqlparams).SingleOrDefault();
-
             }
             catch (Exception err)
             {
@@ -53,6 +64,16 @@ namespace Tutorial.Controllers
             return mess;
         }
 
+        /// <summary>
+        /// Actualiza el estado de una persona
+        /// </summary>
+        /// <remarks>
+        /// Cambia el estado de la persona indicada en Id a activo o inactivo dependiendo de 
+        /// su estado actual
+        /// </remarks>
+        /// <param name="receiver">Id de la persona</param>
+        /// <returns>Instancia de Message</returns>
+        [Produces("application/json")]
         [HttpPut("state")]
         public Message State([FromBody] IdReceiver receiver)
         {
@@ -83,7 +104,18 @@ namespace Tutorial.Controllers
             return mess;
         }
 
-        // GET: api/<controller>
+        /// <summary>
+        /// Lista personas
+        /// </summary>
+        /// <remarks>
+        /// Lista a la persona con el id indicado, en este caso retorna un unico registro o nada. O, lista a las personas
+        /// entre los indices indicados, Start, a partir de que fila retorna, End, la cantidad de registros que va a retornar
+        /// </remarks>
+        /// <param name="Id">Id de persona o 0</param>
+        /// <param name="Start">Indice de inicio</param>
+        /// <param name="End">Cantidad a devolver</param>
+        /// <returns>Retorna una tupla con una instancia de Message y un listado de Person</returns>
+        [Produces("application/json")]
         [HttpGet("{Id}/{Start}/{End}")]
         public Tuple<Message, List<Person>> List(int Id, int Start, int End)
         {
@@ -162,7 +194,12 @@ namespace Tutorial.Controllers
             return result;
         }
 
-        // DELETE api/<controller>/5
+        /// <summary>
+        /// Elimina un registro de persona
+        /// </summary>
+        /// <param name="receiver">Id del registro a eliminar</param>
+        /// <returns></returns>
+        [Produces("application/json")]
         [HttpDelete("{Id}")]
         public Message Delete(IdReceiver receiver)
         {
